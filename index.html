@@ -1,5 +1,15 @@
 <div>Teachable Machine Image Model</div>
-<input type="file" accept="image/*" onchange="handleImageUpload(event)">
+<div>Teachable Machine Image Model</div>
+
+<!-- File input -->
+<input type="file" accept="image/*" onchange="handleImageUpload(event)" id="fileInput">
+
+<!-- Drop zone -->
+<div id="drop-zone" style="border: 2px dashed #aaa; padding: 20px; margin-top: 10px; text-align: center;">
+    Drag and drop an image here
+</div>
+
+<!-- Preview and results -->
 <div id="image-preview"></div>
 <div id="label-container"></div>
 
@@ -24,12 +34,22 @@
         }
     }
 
-    async function handleImageUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+    async function handleImageUpload(eventOrFile) {
+        let file;
+        if (eventOrFile.dataTransfer) {
+            // From drop zone
+            file = eventOrFile.dataTransfer.files[0];
+        } else if (eventOrFile.target) {
+            // From file input
+            file = eventOrFile.target.files[0];
+        } else {
+            return;
+        }
+
+        if (!file || !file.type.startsWith('image/')) return;
 
         const img = document.createElement("img");
-        img.src = window.URL.createObjectURL(file); // FIXED: use window.URL
+        img.src = URL.createObjectURL(file);
         img.onload = async () => {
             document.getElementById("image-preview").innerHTML = "";
             document.getElementById("image-preview").appendChild(img);
@@ -46,5 +66,25 @@
         }
     }
 
+    function setupDropZone() {
+        const dropZone = document.getElementById("drop-zone");
+
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.style.backgroundColor = "#f0f0f0";
+        });
+
+        dropZone.addEventListener("dragleave", () => {
+            dropZone.style.backgroundColor = "";
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.style.backgroundColor = "";
+            handleImageUpload(e);
+        });
+    }
+
     loadModel();
+    setupDropZone();
 </script>
